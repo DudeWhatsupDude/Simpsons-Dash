@@ -1,0 +1,7 @@
+-- v 1.0.0 BETA
+*basic gameplay
+*duffcan, doughnuts, and Flanders
+*next update hopefully has menu
+
+-- v 1.0.1 BETA
+*add highscore

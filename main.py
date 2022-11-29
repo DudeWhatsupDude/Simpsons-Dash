@@ -52,6 +52,9 @@ Powerup = pygame.transform.scale(Powerup, (30, 50))
 Bart_Shield = pygame.image.load('Sheild(Bart).png')
 Bart_Shield = pygame.transform.scale(Bart_Shield, (40, 80))
 
+restart_button = pygame.image.load('RestartButton.png')
+restart_button = pygame.transform.scale(restart_button, (50, 50))
+
 endimg = pygame.image.load('PowerUp(DuffCan).png')
 endimgframeone = pygame.transform.rotate(endimg, 5)
 endimgframetwo = pygame.transform.rotate(endimg, 10)
@@ -218,8 +221,13 @@ class LifeBar:
   def render(self, display_surface):
     for clone in range(self.clones):
       display_surface.blit(self.myGraphic, (self.x + (clone * 40), self.y))
+  def setLifes(self, l):
+    self.clones = l
 
-    
+
+Restart_Button = restart_button
+Restart_Button_Rect = Restart_Button.get_rect()
+
 class Spike():
   def __init__(self, POS, extrainfo=None, doesKill=True, mygraphic=Collectable):
     self.x_pos = POS[0]
@@ -230,6 +238,14 @@ class Spike():
     self.does_kill = doesKill
     self.show = True
     self.details = extrainfo
+    self.INIT_x_pos = POS[0]
+    self.INIT_y_pos = POS[1]
+    self.INIT_graphics = mygraphic
+    print(mygraphic)
+    self.INIT_rect = self.graphics.get_rect()
+    self.INIT_does_kill = doesKill
+    self.INIT_show = True
+    self.INIT_details = extrainfo
     
   def move(self,vel):
     self.x_pos += vel[0]
@@ -241,6 +257,16 @@ class Spike():
     if self.show:
       display_surface.blit(self.graphics, (self.x_pos, self.y_pos))
 
+  def full_Reset(self):
+    self.x_pos = self.INIT_x_pos
+    self.y_pos = self.INIT_y_pos
+    self.graphics = self.INIT_graphics
+    self.rect = self.INIT_rect
+    self.rect.x = self.x_pos
+    self.rect.y = self.y_pos
+    self.does_kill = self.INIT_does_kill
+    self.show = self.INIT_show
+    
 class Button:
   def __init__(self, middle, xoff, yoff):
     self.middlex = middle[0]
@@ -315,6 +341,15 @@ for i in range(100):
   tickertickticktick += 1
 
   gamemaps[level-1].append(Spike([(tickertickticktick * 300) + random.randint(-50, 50) + 1600, 500],None, True, Enemy))
+  if random.randint(0,2) == 1:
+    gamemaps[level-1].append(Spike([(tickertickticktick * 300) + random.randint(-50, 50) + 1600 + 100, 450],None, False, Collectable))
+
+def RESTARTPLAY(INGAME):
+  print('initRestart')
+  for LEVEL in INGAME:
+    for OBJECT in LEVEL:
+      OBJECT.full_Reset()
+  inGame_lifeBar.setLifes(5)
 
 class CustomizeAbleBar:
   def __init__(self, pos, out, color):
@@ -330,6 +365,7 @@ class CustomizeAbleBar:
     self.out_x = tl
     
   def render(self, display_surface):
+   # pygame.draw.rect(display_surface, (0,0,255), pygame.Rect(self.x-5, self.y-5, 210, self.out_y+5))
     pygame.draw.rect(display_surface, (255,0,0), pygame.Rect(self.x, self.y, 200, self.out_y))
     pygame.draw.rect(display_surface, self.color, pygame.Rect(self.x, self.y, self.out_x, self.out_y))
     
@@ -346,6 +382,38 @@ timesthrough = 0
 
 while True:
   bgmovement -= 4
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      sys.exit()
+      
+    if event.type == pygame.KEYDOWN:
+        
+      if event.key == pygame.K_w:
+          
+        isButtonUp = True
+          
+      if event.key == pygame.K_UP:
+          
+        isButtonUp = True
+
+      if event.key == pygame.K_SPACE:
+        isButtonUp = True
+        
+    if event.type == pygame.KEYUP:
+      if event.key == pygame.K_w:
+        isButtonUp = False
+        
+      if event.key == pygame.K_UP:
+        isButtonUp = False
+          
+      if event.key == pygame.K_SPACE:
+        isButtonUp = False
+
+    if event.type == pygame.MOUSEBUTTONDOWN:
+      isButtonUp = True
+        
+    if event.type == pygame.MOUSEBUTTONUP:
+      isButtonUp = False
   if localPlayer.Alive:
     
     screen.fill((0,0,120))
@@ -371,38 +439,6 @@ while True:
         
     screen.blit(Powerup, (0,0))
     
-    for event in pygame.event.get():
-      if event.type == pygame.QUIT:
-        sys.exit()
-      
-      if event.type == pygame.KEYDOWN:
-        
-        if event.key == pygame.K_w:
-          
-          isButtonUp = True
-          
-        if event.key == pygame.K_UP:
-          
-          isButtonUp = True
-
-        if event.key == pygame.K_SPACE:
-          isButtonUp = True
-        
-      if event.type == pygame.KEYUP:
-        if event.key == pygame.K_w:
-          isButtonUp = False
-        
-        if event.key == pygame.K_UP:
-          isButtonUp = False
-          
-        if event.key == pygame.K_SPACE:
-          isButtonUp = False
-
-      if event.type == pygame.MOUSEBUTTONDOWN:
-        isButtonUp = True
-        
-      if event.type == pygame.MOUSEBUTTONUP:
-        isButtonUp = False
           
     ticker = 0
     
@@ -447,6 +483,8 @@ while True:
     
     if inGame_lifeBar.clones <= 0:
       localPlayer.Alive = False
+      pygame.mixer.music.load('ExplosionSound.mp3')
+      pygame.mixer.music.play(1)
 
     localPlayer.render(screen)
     localPlayer.Apply_phisics(isButtonUp)
@@ -483,7 +521,16 @@ while True:
     if invincibleTimer <= 0:
       CANDODAMAGE = True
     
-  
+    screen.blit(restart_button, (550,550))
+    mx,my = pygame.mouse.get_pos()
+    Restart_Button_Rect.x, Restart_Button_Rect.y = 550, 550
+    
+    if Restart_Button_Rect.collidepoint(mx, my):
+      if isButtonUp:
+        RESTARTPLAY(gamemaps)
+        pygame.mixer.music.load('BackgroundMusic.mp3')
+        pygame.mixer.music.play(-1)
+      
   else:
     try:
       if not KILLDONE:
@@ -498,19 +545,43 @@ while True:
       KILLDONE = True
 
   if KILLDONE:
+    f = open('highscore.txt', 'r')
+    c_highscore = f.read()
+    f.close()
+    
+    if Points > math.floor(int(c_highscore)):
+      f = open('highscore.txt', 'a')
+      f.truncate(0)
+      f.close()
+      f = open('highscore.txt','w')
+      f.write(str(math.floor(int(Points))))
+      f.close()
+      c_highscore = math.floor(Points)
     screen.blit(GameOverScreen,(0,0))
     LoseFont = font.Font('freesansbold.ttf', 32)
     LoseText = LoseFont.render(f'Game over. Score: {math.floor(Points)}', True, (60,100,20))
-    LosePercentangeText = LoseFont.render(f'{str(math.floor((Points / 38) * 100))}%', True, (60,100,20))
+    LosePercentangeText = LoseFont.render(f'highscore: {c_highscore}', True, (60,100,20))
     
     LoseTextRect = LoseText.get_rect()
     LosePercentangeTextRect = LosePercentangeText.get_rect()
     LosePercentangeTextRect.center = (600 // 2, 100)
     
     LoseTextRect.center = (600 // 2, 50)
-    #screen.blit(LosePercentangeText, LosePercentangeTextRect)
+    screen.blit(LosePercentangeText, LosePercentangeTextRect)
     screen.blit(LoseText, LoseTextRect)
     #particlesin.append(particles.Particle((localPlayer.x_pos,localPlayer.y_pos), (3456,110), (0,0), [3,0]))
+    mx,my = pygame.mouse.get_pos()
+    Restart_Button_Rect.x, Restart_Button_Rect.y = 550, 550
+    screen.blit(Restart_Button, (550,550))
+    if Restart_Button_Rect.collidepoint(mx, my):
+      if isButtonUp:
+        RESTARTPLAY(gamemaps)
+        localPlayer.Alive = True
+        KILLDONE = False
+        speed = 4
+        pygame.mixer.music.load('BackgroundMusic.mp3')
+        pygame.mixer.music.play(-1)
+    
   mainClock.tick(100)
 
   inGame_lifeBar.render(screen)
@@ -522,4 +593,3 @@ while True:
   speed += 0.001
   
   pygame.display.flip()
-  
