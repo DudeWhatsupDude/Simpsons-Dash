@@ -6,8 +6,7 @@ import player
 import KillEffects
 import math
 import random
-#import particles
-
+from particles import Particle 
 pygame.init()
 
 screen = pygame.display.set_mode((600,600))
@@ -379,7 +378,41 @@ pygame.mixer.music.play(-1)
 bgmovement = 0
 bg1add = 0
 timesthrough = 0
+start = False
+PlayButton = Button([300,300], 60, 20)
+PlayButtonRect = pygame.Rect(PlayButton.middlex-PlayButton.x_offset,PlayButton.middley-PlayButton.y_offset, PlayButton.x_offset*2, PlayButton.y_offset*2)
+txxtfont = pygame.font.Font('freesansbold.ttf', 32)
+txxt = txxtfont.render('Play', True, (255,255,255))
+txxtRect = txxt.get_rect()
+txxtRect.center = (PlayButtonRect.center[0],PlayButtonRect.center[1])
 
+particles = []
+particlecolors = [(255, 0, 0), (255,215,0), (255,69,0), (22,22,22), (0,255,30), (0,30,255)]
+
+while not start:
+  screen.fill((0,0,0))
+  
+  mx,my = pygame.mouse.get_pos()
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      sys.exit()
+    if event.type == pygame.MOUSEBUTTONDOWN:
+      isMouse = PlayButton.check_hover([mx,my])
+      if isMouse:
+        start = True
+  for x in range(random.randint(2, 5)):
+    particle = Particle(300, 300, random.randint(-20,20)/5, random.randint(-10, 10), random.randint(3, 5), random.choice(particlecolors),0)
+  particles.append(particle)
+  for particle in particles:
+    particle.render(screen)
+    if particle.radius <= 0:
+      particles.remove(particle)
+  
+  pygame.draw.rect(screen, (21,71,52), PlayButtonRect)
+  screen.blit(txxt,txxtRect)
+  pygame.display.flip()
+  
+  
 while True:
   bgmovement -= 4
   for event in pygame.event.get():
@@ -437,7 +470,6 @@ while True:
           
           timesthrough += 1
         
-    screen.blit(Powerup, (0,0))
     
           
     ticker = 0
