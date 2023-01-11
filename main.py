@@ -1,4 +1,3 @@
-
 import pygame
 from pygame import font
 import sys
